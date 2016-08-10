@@ -1,47 +1,96 @@
 <!DOCTYPE html>
-<html lang="en" id="greatgreatgrandpa">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>DOM Grandpa</title>
-    <script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.js">
-
-    </script>
-    <script type="text/javascript">
-//        $(function () {
-//            $('*').each(function () {
-//                var current = this;
-//                this.onclick = function (event) {
-//                    if (!event) event = window.event;
-//                    var target = event.target?event.target:event.srcElement;
-//                    say('for'+current.tagName+'#'+current.id+'target is'+target.id);
-//                }
-//            });
-//        });
-
-
-        alert(navigator.userAgent);
-
-
-
-        function say(text) {
-            $('#console').append('<div>'+text+'</div>');
-        }
-
-        $(function () {
-            console.log("function(111111)");
-        });
-
-        $(say);
-    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=eIxDStjzbtH0WtU50gqdXYCz"></script>
+    <script type="text/javascript" src="jQuery/jquery.js"></script>
+    <title>地图展示</title>
 </head>
-<body id="greatgrandpa">
-    <div id="grandpa">
-        <div id="pops">
-            <img id="vstar" src="img/oneYuan.png">
-            <p id="paragraph">paragraph</p>
-        </div>
-    </div>
-    <div id="console">console</div>
-    <input accept="image/*" type="file">
+<body> 
+<p id="disappear">If you click on me, I will disappear.</p> 
+<p id="paragraph2">This is paragraph2</p> 
+<button type="button" id="clickBtn">Click me</button>
 </body>
 </html>
+<script type="text/javascript">
+/*
+     // 百度地图API功能
+     var map1 = new BMap.Map("allmap");    // 创建Map实例
+     map1.centerAndZoom(new BMap.Point(116.404, 39.915), 11);  // 初始化地图,设置中心点坐标和地图级别
+     map1.addControl(new BMap.MapTypeControl());   //添加地图类型控件
+     map1.setCurrentCity("北京");          // 设置地图显示的城市 此项是必须设置的
+     map1.enableScrollWheelZoom(true);     //开启鼠标滚轮缩放
+*/
+
+
+    var map;
+    var gpsPoint;
+    var baiduPoint;
+    var gpsAddress;
+    var baiduAddress;
+    var options = {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    };
+    function error(err) {
+        console.warn('ERROR(' + err.code + '): ' + err.message);
+    }
+
+
+    var x = document.getElementById("disappear");
+    function getLocation() {
+        alert("navigator.geolocation:"+navigator.geolocation);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, error, options);
+        } else {
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+    function showPosition(position) {
+        x.innerHTML = "Latitude: " + position.coords.latitude + "<br />Longitude: " + position.coords.longitude + "<br />altitude:" + position.coords.altitude + "<br/>accuracy:" + position.coords.accuracy;
+        alert("before  ggpoint");
+        var longitude = position.coords.longitude;
+        var latitude = position.coords.latitude;
+        var ggPoint = new BMap.Point(longitude,latitude);
+//        var ggPoint = new BMap.Point(position.coords.longitude, position.coords.latitude);
+        //HTML5的经纬度 
+        alert("after  ggpoint:", ggPoint);
+        // 根据坐标逆解析地址 
+        var geoc = new BMap.Geocoder();
+
+
+//0：代表GPS，也可以是2：google坐标
+        BMap.Convertor.translate(gpsPoint, 0, translateCallback);
+        alert("var geoc:" + geoc);
+        alert("gpspoint:" + gpsPoint);
+    } 
+    //坐标转换完之后的回调函数 
+    translateCallback = function (data) {
+        alert("alert here");
+
+        alert("translateCallback   data:" + data);
+        if (data.status === 0) {
+            //  data.points[0];             //转换后的百度坐标（正确） 
+            baiduPoint = point;
+            var geoc = new BMap.Geocoder();
+            geoc.getLocation(baiduPoint, getCityByBaiduCoordinate);
+        }
+    };
+    function getCityByBaiduCoordinate(rs) {
+        baiduAddress = rs.addressComponents;
+        var address = "百度标注：" + baiduAddress.province + "," + baiduAddress.city + "," + baiduAddress.district + "," + baiduAddress.street + "," + baiduAddress.streetNumber;
+        alert("address:" + address);
+    }
+
+
+
+    /*     var lng = position.coords.longitude;         var lat = position.coords.latitude;           var url = 'http://api.map.baidu.com/geocoder/v2/?ak=eIxDStjzbtH0WtU50gqdXYCz&output=json&pois=1&location=' + lat + "," + lng;         alert(url);         $.ajax({             type: "POST",             url: url,             dataType: "JSONP",             success: function (data) {                 if (parseInt(data.status) == 0) {                     var result = "地址：" + data.result.formatted_address + "</br>";                     result += "省名:" + data.result.addressComponent.province + "</br>";                     result += "城市名:" + data.result.addressComponent.city + "</br>";                     result += "区县名:" + data.result.addressComponent.district + "</br>";                     result += "街道名:" + data.result.addressComponent.street + "</br>";                     result += "街道门牌号:" + data.result.addressComponent.street_number + "</br>";                     result += "周边信息：</br>";                     for (var i = 0; i < data.result.pois.length; i++) {                         result += "地址信息:" + data.result.pois[i].addr                                 + ",数据来源:" + data.result.pois[i].cp                                 + ",离坐标点距离:" + data.result.pois[i].distance                                 + ",poi名称:" + data.result.pois[i].name                                 + ",poi类型:" + data.result.pois[i].poiType                                 + ",poi坐标x:" + data.result.pois[i].point.x                                 + ",poi坐标y:" + data.result.pois[i].point.y                                 + ",电话:" + data.result.pois[i].tel                                 + ",poi唯一标识:" + data.result.pois[i].uid                                 + ",邮编:" + data.result.pois[i].zip + "</br>";                     }                     $('#paragraph2').html(result);                 }             }         });     } */
+    var clickBtn = $("#clickBtn");
+    clickBtn.click(getLocation);
+
+
+    //    getLocation();
+</script>
+
